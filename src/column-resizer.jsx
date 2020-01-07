@@ -19,6 +19,8 @@ export default class ColumnResizer extends React.Component {
         this.startPos = 0;
         this.startWidthPrev = 0;
         this.startWidthNext = 0;
+
+        this.ele = React.createRef();
     }
 
     startDrag() {
@@ -32,9 +34,10 @@ export default class ColumnResizer extends React.Component {
         this.startWidthPrev = 0;
         this.startWidthNext = 0;        
 
-        if (this.refs.ele) {
-            let prevSibling = this.refs.ele.previousSibling;
-            let nextSibling = this.refs.ele.nextSibling;
+        if (this.ele.current) {
+            const ele = this.ele.current;
+            let prevSibling = ele.previousSibling;
+            let nextSibling = ele.nextSibling;
 
             if (prevSibling) {
                 this.startWidthPrev = prevSibling.clientWidth;
@@ -52,6 +55,22 @@ export default class ColumnResizer extends React.Component {
         }
 
         this.dragging = false;
+        if (this.ele.current) {
+          const ele = this.ele.current;
+          let prevSibling = ele.previousSibling;
+          let nextSibling = ele.nextSibling;
+
+        
+          let parent = ele.parentElement;
+          const nodes = parent.childNodes.length;
+          const parentWidth = parent.clientWidth - (nodes - 1) / 2 * 6;
+
+          ele.previousSibling.style.width =  (prevSibling.clientWidth / parentWidth) * 100 + '%';
+          ele.nextSibling.style.width = (nextSibling.clientWidth  / parentWidth) * 100 + '%';
+
+        }
+
+
     }
 
     onMouseMove(e) {
@@ -64,7 +83,7 @@ export default class ColumnResizer extends React.Component {
             return;
         }
 
-        const ele = this.refs.ele;
+        const ele = this.ele.current;
 
         const moveDiff = this.startPos - this.mouseX;
         let newPrev = this.startWidthPrev - moveDiff;
@@ -142,7 +161,7 @@ export default class ColumnResizer extends React.Component {
         }
 
         return (
-            <td ref="ele" 
+            <td ref={this.ele}
                 style={style}
                 className={this.props.className}
                 onMouseDown={!this.props.disabled && this.startDrag}

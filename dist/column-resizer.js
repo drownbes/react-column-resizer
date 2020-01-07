@@ -43,16 +43,12 @@ function (_React$Component) {
     _this.startDrag = _this.startDrag.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.endDrag = _this.endDrag.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.onMouseMove = _this.onMouseMove.bind(_assertThisInitialized(_assertThisInitialized(_this)));
-
-    if (props.disabled) {
-      return _possibleConstructorReturn(_this);
-    }
-
     _this.dragging = false;
     _this.mouseX = 0;
     _this.startPos = 0;
     _this.startWidthPrev = 0;
     _this.startWidthNext = 0;
+    _this.ele = _react.default.createRef();
     return _this;
   }
 
@@ -68,9 +64,10 @@ function (_React$Component) {
       this.startWidthPrev = 0;
       this.startWidthNext = 0;
 
-      if (this.refs.ele) {
-        var prevSibling = this.refs.ele.previousSibling;
-        var nextSibling = this.refs.ele.nextSibling;
+      if (this.ele.current) {
+        var ele = this.ele.current;
+        var prevSibling = ele.previousSibling;
+        var nextSibling = ele.nextSibling;
 
         if (prevSibling) {
           this.startWidthPrev = prevSibling.clientWidth;
@@ -89,6 +86,17 @@ function (_React$Component) {
       }
 
       this.dragging = false;
+
+      if (this.ele.current) {
+        var ele = this.ele.current;
+        var prevSibling = ele.previousSibling;
+        var nextSibling = ele.nextSibling;
+        var parent = ele.parentElement;
+        var nodes = parent.childNodes.length;
+        var parentWidth = parent.clientWidth - (nodes - 1) / 2 * 6;
+        ele.previousSibling.style.width = prevSibling.clientWidth / parentWidth * 100 + '%';
+        ele.nextSibling.style.width = nextSibling.clientWidth / parentWidth * 100 + '%';
+      }
     }
   }, {
     key: "onMouseMove",
@@ -103,7 +111,7 @@ function (_React$Component) {
         return;
       }
 
-      var ele = this.refs.ele;
+      var ele = this.ele.current;
       var moveDiff = this.startPos - this.mouseX;
       var newPrev = this.startWidthPrev - moveDiff;
       var newNext = this.startWidthNext + moveDiff;
@@ -129,10 +137,7 @@ function (_React$Component) {
         return;
       }
 
-      document.addEventListener('mousemove', this.onMouseMove);
-      document.addEventListener('mouseup', this.endDrag);
-      document.addEventListener("touchmove", this.onMouseMove);
-      document.addEventListener("touchend", this.endDrag);
+      this.addEventListenersToDocument();
     }
   }, {
     key: "componentWillUnmount",
@@ -141,6 +146,30 @@ function (_React$Component) {
         return;
       }
 
+      this.removeEventListenersFromDocument();
+    }
+  }, {
+    key: "componentDidUpdate",
+    value: function componentDidUpdate(prevProps, prevState) {
+      if (prevProps.disabled && !this.props.disabled) {
+        this.addEventListenersToDocument();
+      }
+
+      if (!prevProps.disabled && this.props.disabled) {
+        this.removeEventListenersFromDocument();
+      }
+    }
+  }, {
+    key: "addEventListenersToDocument",
+    value: function addEventListenersToDocument() {
+      document.addEventListener('mousemove', this.onMouseMove);
+      document.addEventListener('mouseup', this.endDrag);
+      document.addEventListener("touchmove", this.onMouseMove);
+      document.addEventListener("touchend", this.endDrag);
+    }
+  }, {
+    key: "removeEventListenersFromDocument",
+    value: function removeEventListenersFromDocument() {
       document.removeEventListener('mousemove', this.onMouseMove);
       document.removeEventListener('mouseup', this.endDrag);
       document.removeEventListener('touchmove', this.onMouseMove);
@@ -163,7 +192,7 @@ function (_React$Component) {
       }
 
       return _react.default.createElement("td", {
-        ref: "ele",
+        ref: this.ele,
         style: style,
         className: this.props.className,
         onMouseDown: !this.props.disabled && this.startDrag,
@@ -178,7 +207,7 @@ function (_React$Component) {
 exports.default = ColumnResizer;
 ColumnResizer.defaultProps = {
   disabled: false,
-  minWidth: 50,
+  minWidth: 0,
   className: ""
 };
 ColumnResizer.propTypes = {
