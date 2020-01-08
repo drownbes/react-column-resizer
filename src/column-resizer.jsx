@@ -68,7 +68,12 @@ export default class ColumnResizer extends React.Component {
           ele.previousSibling.style.width =  (prevSibling.clientWidth / parentWidth) * 100 + '%';
           ele.nextSibling.style.width = (nextSibling.clientWidth  / parentWidth) * 100 + '%';
 
+          if(this.props.onDragEnd) {
+            const widths = [...parent.childNodes].filter(n => n.style.width !== "").map(n => n.style.width);
+            this.props.onDragEnd(widths);
+          }
         }
+       
 
 
     }
